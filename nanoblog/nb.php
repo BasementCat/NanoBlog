@@ -1,30 +1,4 @@
 <?php
-	function nb_install(){
-		if(!mkdir(DATA_DIR, 0770, true)) return "Failed to create data directory: ".DATA_DIR;
-		//if(!file_put_contents(POST_URL_INDEX, "{}")) return "Failed to create post index: ".POST_URL_INDEX;
-		//if(!file_put_contents(USERS_FILE, "{}")) return "Failed to create user file: ".USERS_FILE;
-		foreach(get_declared_classes() as $class){
-			if(!is_subclass_of($class, 'Model')) continue;
-			if(!($status=$class::install())) return "Failed to install model {$class}: {$status}";
-		}
-		return true;
-	}
-
-	function nb_installed(){
-		return file_exists(DATA_DIR);
-	}
-
-	function nb_sanityCheck(){
-		if(!file_exists(DATA_DIR)) return "Data directory doesn't exist: ".DATA_DIR;
-		//if(!file_exists(POST_URL_INDEX)) return "Index doesn't exist: ".POST_URL_INDEX;
-		//if(!file_exists(USERS_FILE)) return "User db doesn't exist: ".USERS_FILE;
-		foreach(get_declared_classes() as $class){
-			if(!is_subclass_of($class, 'Model')) continue;
-			if(!($status=$class::init())) return "Failed to init model {$class}: {$status}";
-		}
-		return true;
-	}
-
 	function nb_request($index=null, $setTo=null){
 		static $request=null, $request_s=null;
 		if($request===null||$setTo!==null){
