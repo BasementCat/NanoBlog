@@ -8,6 +8,35 @@
 		}
 
 		public function post(){ return $this->post; }
+
+		public static function mostRecentPost($directory="./"){
+			//This function is stupid and slow...
+			$pl_exts=array();
+			foreach(get_declared_classes() as $class){
+				if(!is_subclass_of($class, 'NB_PostLoader')) continue;
+				if(!preg_match("#^NBP_#", $class)) continue;
+				$pl_exts[]=preg_replace("#^NBP_#", "", $class);
+			}
+			$dirqueue=array($directory);
+			$latest=null;
+			while($dirqueue){
+				$dir_files=glob(array_shift($dirqueue).'/*');
+				foreach($dir_files as $file){
+					if(is_dir($file)){
+						$dirqueue[]=$file;
+					}else{
+						$_ftemp=explode(".", $file);
+						$ext=array_pop($_ftemp);
+						if(!in_array($ext, $pl_exts)) continue;
+						//try to load $file, and get the date
+						$nb=new NanoBlog(preg_replace("#\\.".$ext."$#", "", $file), $ext);
+						if(!$latest||($nb->post()->getTime()>$latest->post()->getTime())) $latest=$nb;
+					}
+				}
+			}
+			if(!$latest) throw new Exception("Cannot find the latest post");
+			return $latest;
+		}
 	}
 
 	abstract class NB_TextFormat{
