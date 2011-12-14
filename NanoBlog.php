@@ -9,7 +9,7 @@
 
 		public function post(){ return $this->post; }
 
-		public static function mostRecentPost($directory="./"){
+		public static function allPosts($directory="./"){
 			//This function is stupid and slow...
 			$pl_exts=array();
 			foreach(get_declared_classes() as $class){
@@ -18,7 +18,7 @@
 				$pl_exts[]=preg_replace("#^NBP_#", "", $class);
 			}
 			$dirqueue=array($directory);
-			$latest=null;
+			$posts_temp=array();
 			while($dirqueue){
 				$dir_files=glob(array_shift($dirqueue).'/*');
 				foreach($dir_files as $file){
@@ -30,9 +30,21 @@
 						if(!in_array($ext, $pl_exts)) continue;
 						//try to load $file, and get the date
 						$nb=new NanoBlog(preg_replace("#\\.".$ext."$#", "", $file), $ext);
-						if(!$latest||($nb->post()->getTime()>$latest->post()->getTime())) $latest=$nb;
+						$posts_temp[$nb->post()->getTime()]=$nb;
 					}
 				}
+			}
+			//reindex posts so that it's a 0-indexed array
+			$posts=array();
+			foreach($posts_temp as $post) $posts[]=$post;
+			return $posts;
+		}
+
+		public static function mostRecentPost($directory="./"){
+			//This function is stupid and slow... (see allPosts())
+			$latest=null;
+			foreach(self::allPosts($directory) as $nb){
+				if(!$latest||($nb->post()->getTime()>$latest->post()->getTime())) $latest=$nb;
 			}
 			if(!$latest) throw new Exception("Cannot find the latest post");
 			return $latest;
