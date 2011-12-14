@@ -1,7 +1,7 @@
 <?php
 	class NanoBlog{
 		protected $post;
-		public function __construct($path, $format='json'){
+		public function __construct($path, $format='nbpost'){
 			$formatClass=sprintf('NBP_%s', $format);
 			if(!class_exists($formatClass)) throw new Exception("Can't find format class {$formatClass} for format {$format}");
 			$this->post=new $formatClass($path);
@@ -58,6 +58,41 @@
 				$this->Time=filemtime($this->File);
 			$this->Author=$data['Author'];
 			$this->RawBody=$data['Body'];
+			$fmtClass=sprintf('NBT_%s', $data['Format']);
+			if(!class_exists($fmtClass)) throw new Exception("Can't find format class for {$data['Format']}: {$fmtClass}");
+			$this->FmtBody=new $fmtClass($this->RawBody);
+		}
+	}
+
+	class NBP_nbpost extends NB_PostLoader{
+		protected function load(){
+			$this->File=sprintf('%s.nbpost', $this->Path);
+			if(!file_exists($this->File)) throw new Exception("Failed to load {$this->File}");
+			$all_data_raw=file_get_contents($this->File);
+			//detect line endings
+			$line_endings=null;
+			foreach(array("\r\n", "\n", "\r") as $end_type){
+				if(preg_match("#{$end_type}#", $all_data_raw)){
+					$line_endings=$end_type;
+					break;
+				}
+			}
+			if(!$line_endings) throw new Exception("Failed to detect line endings in {$this->File}");
+			list($data_raw, $body)=preg_split("#(".$line_endings."){2}#", $all_data_raw, 2);
+			$data=array();
+			foreach(preg_split("#\r\n|\n|\r#", $data_raw) as $line){
+				list($k, $v)=preg_split("#:\s+#", $line, 2);
+				$data[$k]=$v;
+			}
+			$this->Title=$data['Title'];
+			if(isset($data['Time']))
+				$this->Time=$data['Time'];
+			elseif(isset($data['TextTime']))
+				$this->Time=strtotime($data['TextTime']);
+			else
+				$this->Time=filemtime($this->File);
+			$this->Author=$data['Author'];
+			$this->RawBody=$body;
 			$fmtClass=sprintf('NBT_%s', $data['Format']);
 			if(!class_exists($fmtClass)) throw new Exception("Can't find format class for {$data['Format']}: {$fmtClass}");
 			$this->FmtBody=new $fmtClass($this->RawBody);
