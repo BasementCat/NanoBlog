@@ -1,10 +1,10 @@
 <?php
 	class NanoBlog{
 		protected $post;
-		public function __construct($path, $format='nbpost'){
+		public function __construct($path, $root='./', $format='nbpost'){
 			$formatClass=sprintf('NBP_%s', $format);
 			if(!class_exists($formatClass)) throw new Exception("Can't find format class {$formatClass} for format {$format}");
-			$this->post=new $formatClass($path);
+			$this->post=new $formatClass($root.$path);
 		}
 
 		public function post(){ return $this->post; }
@@ -29,25 +29,25 @@
 						$ext=array_pop($_ftemp);
 						if(!in_array($ext, $pl_exts)) continue;
 						//try to load $file, and get the date
-						$nb=new NanoBlog(preg_replace("#\\.".$ext."$#", "", $file), $ext);
+						$nb=new NanoBlog(preg_replace("#\\.".$ext."\$#", "", $file), './', $ext);
 						$posts_temp[$nb->post()->getTime()]=$nb;
 					}
 				}
 			}
 			//reindex posts so that it's a 0-indexed array
 			$posts=array();
-			foreach($posts_temp as $post) $posts[]=$post;
+			foreach(array_reverse($posts_temp) as $post) $posts[]=$post;
 			return $posts;
 		}
 
-		public static function mostRecentPost($directory="./"){
+		public static function latestPosts($count=3, $directory="./"){
 			//This function is stupid and slow... (see allPosts())
-			$latest=null;
-			foreach(self::allPosts($directory) as $nb){
-				if(!$latest||($nb->post()->getTime()>$latest->post()->getTime())) $latest=$nb;
-			}
-			if(!$latest) throw new Exception("Cannot find the latest post");
-			return $latest;
+			return array_slice(self::allPosts($directory), 0, $count);
+		}
+
+		public static function mostRecentPost($directory="./"){
+			$post_a=self::latestPosts(1, $directory);
+			return $post_a[0];
 		}
 	}
 
@@ -108,7 +108,7 @@
 	class NBP_nbpost extends NB_PostLoader{
 		protected function load(){
 			$this->File=sprintf('%s.nbpost', $this->Path);
-			if(!file_exists($this->File)) throw new Exception("Failed to load {$this->File}");
+			if(!file_exists($this->File)) throw new Exception("Failed to load '{$this->File}' given '{$this->Path}'");
 			$all_data_raw=file_get_contents($this->File);
 			//detect line endings
 			$line_endings=null;
