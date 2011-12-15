@@ -1,15 +1,18 @@
 <?php
 	class NanoBlog{
+		public static $Root="./";
+
 		protected $post;
-		public function __construct($path, $root='./', $format='nbpost'){
+		
+		public function __construct($path, $format='nbpost'){
 			$formatClass=sprintf('NBP_%s', $format);
 			if(!class_exists($formatClass)) throw new Exception("Can't find format class {$formatClass} for format {$format}");
-			$this->post=new $formatClass($root.$path);
+			$this->post=new $formatClass(self::$Root.$path);
 		}
 
 		public function post(){ return $this->post; }
 
-		public static function allPosts($directory="./"){
+		public static function allPosts(){
 			//This function is stupid and slow...
 			$pl_exts=array();
 			foreach(get_declared_classes() as $class){
@@ -17,7 +20,7 @@
 				if(!preg_match("#^NBP_#", $class)) continue;
 				$pl_exts[]=preg_replace("#^NBP_#", "", $class);
 			}
-			$dirqueue=array($directory);
+			$dirqueue=array(self::$Root);
 			$posts_temp=array();
 			while($dirqueue){
 				$dir_files=glob(array_shift($dirqueue).'/*');
@@ -29,7 +32,7 @@
 						$ext=array_pop($_ftemp);
 						if(!in_array($ext, $pl_exts)) continue;
 						//try to load $file, and get the date
-						$nb=new NanoBlog(preg_replace("#\\.".$ext."\$#", "", $file), './', $ext);
+						$nb=new NanoBlog(preg_replace("#\\.".$ext."\$#", "", $file), $ext);
 						$posts_temp[$nb->post()->getTime()]=$nb;
 					}
 				}
@@ -40,13 +43,13 @@
 			return $posts;
 		}
 
-		public static function latestPosts($count=3, $directory="./"){
+		public static function latestPosts($count=3){
 			//This function is stupid and slow... (see allPosts())
-			return array_slice(self::allPosts($directory), 0, $count);
+			return array_slice(self::allPosts(), 0, $count);
 		}
 
-		public static function mostRecentPost($directory="./"){
-			$post_a=self::latestPosts(1, $directory);
+		public static function mostRecentPost(){
+			$post_a=self::latestPosts(1);
 			return $post_a[0];
 		}
 	}
