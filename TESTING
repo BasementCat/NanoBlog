@@ -1,0 +1,3 @@
+The SimpleTest framework is used for unit testing.  To run the tests, grab the
+latest copy from http://www.simpletest.org/ and extract it to tests/simpletest/.
+Afterwards, just visit tests/ in a web browser.
