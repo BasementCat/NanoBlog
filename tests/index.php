@@ -54,6 +54,15 @@ EOT
 }
 EOT
 		);
+		file_put_contents($TestDataDir.'zydeco_test.nbpost', <<<EOT
+Title:		This is a test...
+TextTime:	Dec 13th 2011, 9:31 pm
+Author:		Alec
+Format:		raw
+
+*hi*
+EOT
+		);
 	}
 
 	function doTestTearDown(){
@@ -64,7 +73,7 @@ EOT
 		function AllTests(){
 			parent::__construct();
 			$this->addFile(dirname(__FILE__).'/test_nanoblog.php');
-			//$this->addFile(dirname(__FILE__).'/test_zydeco_integration.php');
+			$this->addFile(dirname(__FILE__).'/test_zydeco_integration.php');
 		}
 
 
