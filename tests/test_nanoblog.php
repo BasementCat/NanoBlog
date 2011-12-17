@@ -25,7 +25,7 @@
 			$this->root=dirname(__FILE__).'/';
 			$this->data_dir=$this->root.'test-data/';
 
-			include_once $this->root."/../NanoBlog.php";
+			include_once $this->root."/../src/NanoBlog.php";
 			NanoBlog::$Root=$this->data_dir;
 
 			$this->removeTestData();
